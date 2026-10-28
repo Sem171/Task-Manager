@@ -5,6 +5,18 @@ export type ThemeMode = 'light' | 'dark' | 'system';
 export type SmartView = 'all' | 'today' | 'upcoming' | 'overdue' | 'completed';
 export type Layout = 'board' | 'list';
 export type CategoryColor = 'violet' | 'sky' | 'emerald' | 'amber' | 'rose' | 'slate';
+export type RingtoneMood = 'calm' | 'classic' | 'intense';
+export type RingtoneId =
+  | 'sweet'
+  | 'soft'
+  | 'chime'
+  | 'classic'
+  | 'digital'
+  | 'retro'
+  | 'hard'
+  | 'suspense'
+  | 'danger'
+  | 'siren';
 
 export interface Subtask {
   id: string;
@@ -28,6 +40,8 @@ export interface Task {
   /** ISO timestamp */
   due: string | null;
   reminder: ReminderOffset;
+  /** Ringtone that loops when the reminder fires; null for a silent notification. */
+  alarm: RingtoneId | null;
   reminderFiredAt: string | null;
   snoozedUntil: string | null;
   subtasks: Subtask[];
@@ -37,5 +51,5 @@ export interface Task {
 
 export type TaskDraft = Pick<
   Task,
-  'title' | 'notes' | 'status' | 'priority' | 'categoryId' | 'due' | 'reminder' | 'subtasks'
+  'title' | 'notes' | 'status' | 'priority' | 'categoryId' | 'due' | 'reminder' | 'alarm' | 'subtasks'
 >;

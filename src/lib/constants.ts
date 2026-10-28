@@ -1,4 +1,12 @@
-import type { CategoryColor, Priority, ReminderOffset, SmartView, Status } from '../types';
+import type {
+  CategoryColor,
+  Priority,
+  ReminderOffset,
+  RingtoneId,
+  RingtoneMood,
+  SmartView,
+  Status,
+} from '../types';
 
 export const PRIORITY_ORDER: Priority[] = ['urgent', 'high', 'medium', 'low'];
 
@@ -62,4 +70,23 @@ export const SMART_VIEW_META: Record<SmartView, { label: string }> = {
   upcoming: { label: 'Upcoming' },
   overdue: { label: 'Overdue' },
   completed: { label: 'Completed' },
+};
+
+export const RINGTONE_MOODS: { mood: RingtoneMood; label: string }[] = [
+  { mood: 'calm', label: 'Calm' },
+  { mood: 'classic', label: 'Classic' },
+  { mood: 'intense', label: 'Intense' },
+];
+
+export const RINGTONE_META: Record<RingtoneId, { label: string; mood: RingtoneMood; hint: string }> = {
+  sweet: { label: 'Sweet', mood: 'calm', hint: 'Music-box melody' },
+  soft: { label: 'Soft', mood: 'calm', hint: 'Warm, slow swell' },
+  chime: { label: 'Chime', mood: 'calm', hint: 'Ringing bells' },
+  classic: { label: 'Beep', mood: 'classic', hint: 'Bedside alarm clock' },
+  digital: { label: 'Digital', mood: 'classic', hint: 'Wristwatch double beep' },
+  retro: { label: 'Retro', mood: 'classic', hint: '8-bit arcade jingle' },
+  hard: { label: 'Hard', mood: 'intense', hint: 'Harsh buzzer' },
+  suspense: { label: 'Suspense', mood: 'intense', hint: 'Heartbeat and tension' },
+  danger: { label: 'Danger', mood: 'intense', hint: 'Klaxon warning' },
+  siren: { label: 'Siren', mood: 'intense', hint: 'Rising and falling wail' },
 };

@@ -6,6 +6,7 @@ import { ListView } from './components/board/ListView';
 import { Dashboard } from './components/dashboard/Dashboard';
 import { Header } from './components/layout/Header';
 import { Sidebar } from './components/layout/Sidebar';
+import { AlarmOverlay } from './components/task/AlarmOverlay';
 import { TaskEditor } from './components/task/TaskEditor';
 import { Toaster } from './components/ui/Toaster';
 import { useHotkeys } from './hooks/useHotkeys';
@@ -81,6 +82,7 @@ export default function App() {
       </main>
       <TaskEditor />
       <Toaster />
+      <AlarmOverlay />
     </div>
   );
 }

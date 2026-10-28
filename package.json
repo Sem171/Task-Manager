@@ -2,13 +2,20 @@
   "name": "nova-tasks",
   "private": true,
   "version": "1.0.0",
+  "description": "Nova — a calm, fast task manager.",
+  "author": "Nova Tasks",
+  "main": "electron/main.cjs",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
     "preview": "vite preview",
-    "build:single": "tsc --noEmit && vite build --mode single"
+    "build:single": "tsc --noEmit && vite build --mode single",
+    "build:desktop": "tsc --noEmit && vite build --mode desktop",
+    "desktop:dev": "node electron/dev.mjs",
+    "desktop": "npm run build:desktop && electron .",
+    "desktop:dist": "npm run build:desktop && electron-builder"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -25,9 +32,42 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
+    "electron": "^45.1.0",
+    "electron-builder": "^26.18.0",
     "tailwindcss": "^4.3.3",
     "typescript": "~5.9",
     "vite": "^8.3.5",
     "vite-plugin-singlefile": "^2.3.4"
+  },
+  "build": {
+    "appId": "app.nova.tasks",
+    "productName": "Nova Tasks",
+    "files": [
+      "dist-desktop/**",
+      "electron/*.cjs",
+      "build/icon.png"
+    ],
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.productivity"
+    },
+    "linux": {
+      "target": "AppImage",
+      "category": "Office"
+    }
   }
 }

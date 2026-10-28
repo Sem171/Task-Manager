@@ -1,6 +1,6 @@
-import { Bell, CalendarClock, ListChecks } from 'lucide-react';
+import { AlarmClock, Bell, CalendarClock, ListChecks } from 'lucide-react';
 import type { Category, Priority, Task } from '../../types';
-import { CATEGORY_COLOR_META, PRIORITY_META } from '../../lib/constants';
+import { CATEGORY_COLOR_META, PRIORITY_META, RINGTONE_META } from '../../lib/constants';
 import { dayDiff, formatDue } from '../../lib/date';
 import { isOverdue } from '../../lib/selectors';
 import { cn } from '../../lib/utils';
@@ -56,5 +56,13 @@ export function SubtaskProgress({ task }: { task: Task }) {
 
 export function ReminderIcon({ task }: { task: Task }) {
   if (task.reminder === 'none' || !task.due || task.status === 'done') return null;
+  if (task.alarm) {
+    return (
+      <AlarmClock
+        className="size-3 text-violet-500"
+        aria-label={`Alarm set: ${RINGTONE_META[task.alarm].label}`}
+      />
+    );
+  }
   return <Bell className="size-3 text-zinc-400" aria-label="Reminder set" />;
 }

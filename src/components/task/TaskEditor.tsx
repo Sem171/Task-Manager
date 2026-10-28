@@ -1,15 +1,18 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { Bell, CalendarDays, Plus, Trash2, X } from 'lucide-react';
+import { AlarmClock, Bell, CalendarDays, Play, Plus, Trash2, Volume2, X } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
-import type { Priority, ReminderOffset, Status, Subtask, TaskDraft } from '../../types';
+import type { Priority, ReminderOffset, RingtoneId, Status, Subtask, TaskDraft } from '../../types';
 import {
   CATEGORY_COLOR_META,
   PRIORITY_META,
   PRIORITY_ORDER,
   REMINDER_META,
+  RINGTONE_META,
+  RINGTONE_MOODS,
   STATUS_META,
   STATUS_ORDER,
 } from '../../lib/constants';
+import { cancelPreview, previewRingtone } from '../../lib/alarmSound';
 import { addDays, atTime, fromInputValue, startOfDay, toInputValue } from '../../lib/date';
 import { cn, uid } from '../../lib/utils';
 import { useTaskStore } from '../../store/taskStore';
@@ -27,8 +30,11 @@ const EMPTY: TaskDraft = {
   categoryId: null,
   due: null,
   reminder: 'none',
+  alarm: null,
   subtasks: [],
 };
+
+const RINGTONE_IDS = Object.keys(RINGTONE_META) as RingtoneId[];
 
 const DUE_PRESETS: { label: string; get: () => Date }[] = [
   { label: 'Today', get: () => atTime(new Date(), 17) },
@@ -61,12 +67,24 @@ export function TaskEditor() {
             categoryId: task.categoryId,
             due: task.due,
             reminder: task.reminder,
+            alarm: task.alarm,
             subtasks: task.subtasks,
           }
         : { ...EMPTY, status: defaultStatus, categoryId: categoryFilter },
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, taskId]);
+
+  useEffect(() => {
+    if (!open) cancelPreview();
+  }, [open]);
+
+  const pickAlarm = (id: RingtoneId | null) => {
+    // An alarm needs a reminder time to ring at; default to the deadline itself.
+    setDraft((d) => ({ ...d, alarm: id, reminder: id && d.reminder === 'none' ? 'at' : d.reminder }));
+    if (id) previewRingtone(id);
+    else cancelPreview();
+  };
 
   const set = <K extends keyof TaskDraft>(key: K, value: TaskDraft[K]) => setDraft((d) => ({ ...d, [key]: value }));
   const canSave = draft.title.trim().length > 0;
@@ -261,6 +279,44 @@ export function TaskEditor() {
               </select>
               {!draft.due && <p className="mt-2 text-[11px] text-zinc-400">Set a deadline to enable reminders.</p>}
             </div>
+          </div>
+
+          <div>
+            <span className="label">
+              <AlarmClock className="mr-1 inline size-3 -translate-y-px" />
+              Alarm sound
+            </span>
+            <div className={cn('space-y-2', !draft.due && 'pointer-events-none opacity-50')} aria-disabled={!draft.due}>
+              <CategoryPill active={draft.alarm === null} onClick={() => pickAlarm(null)}>
+                Off
+              </CategoryPill>
+              {RINGTONE_MOODS.map(({ mood, label }) => (
+                <div key={mood} className="flex items-start gap-2">
+                  <span className="w-14 shrink-0 pt-1 text-[11px] text-zinc-400">{label}</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {RINGTONE_IDS.filter((id) => RINGTONE_META[id].mood === mood).map((id) => {
+                      const active = draft.alarm === id;
+                      const Icon = active ? Volume2 : Play;
+                      return (
+                        <CategoryPill key={id} active={active} onClick={() => pickAlarm(id)}>
+                          <Icon className="size-3" />
+                          <span title={RINGTONE_META[id].hint}>{RINGTONE_META[id].label}</span>
+                        </CategoryPill>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="mt-2 text-[11px] text-zinc-400">
+              {!draft.due
+                ? 'Set a deadline to enable alarms.'
+                : !draft.alarm
+                  ? 'Pick a sound to ring until you stop it. Tap one to preview.'
+                  : draft.reminder === 'none'
+                    ? 'Choose a reminder time above for the alarm to ring.'
+                    : `${RINGTONE_META[draft.alarm].hint}. Rings ${REMINDER_META[draft.reminder].label.toLowerCase()} until you stop it.`}
+            </p>
           </div>
 
           <div>

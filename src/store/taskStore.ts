@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import type { Category, CategoryColor, Status, Task, TaskDraft } from '../types';
 import { uid } from '../lib/utils';
-import { createSeed } from './seed';
+import { defaultCategories, LEGACY_SAMPLE_TITLES } from './seed';
 
 interface TaskState {
   tasks: Task[];
@@ -43,7 +43,8 @@ function applyPatch(task: Task, patch: Partial<Task>): Task {
 export const useTaskStore = create<TaskState>()(
   persist(
     (set, get) => ({
-      ...createSeed(),
+      tasks: [],
+      categories: defaultCategories(),
 
       addTask: (draft) => {
         const task: Task = {
@@ -54,6 +55,7 @@ export const useTaskStore = create<TaskState>()(
           categoryId: null,
           due: null,
           reminder: 'none',
+          alarm: null,
           subtasks: [],
           ...draft,
           title: draft.title.trim(),
@@ -150,8 +152,16 @@ export const useTaskStore = create<TaskState>()(
     }),
     {
       name: 'nova-tasks',
-      version: 1,
+      version: 3,
       storage: createJSONStorage(() => localStorage),
+      migrate: (persisted, version) => {
+        const state = persisted as Pick<TaskState, 'tasks' | 'categories'>;
+        // v1 seeded sample tasks on first launch; drop them for existing users.
+        if (version < 2) state.tasks = state.tasks.filter((t) => !LEGACY_SAMPLE_TITLES.has(t.title));
+        // v3 added alarm ringtones.
+        if (version < 3) state.tasks = state.tasks.map((t) => ({ ...t, alarm: t.alarm ?? null }));
+        return state as TaskState;
+      },
       partialize: (s) => ({ tasks: s.tasks, categories: s.categories }),
     },
   ),
