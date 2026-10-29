@@ -109,12 +109,29 @@ function createWindow() {
     if (/^https?:/.test(url)) shell.openExternal(url);
   });
 
+  // The renderer can die while the window sits hidden in the tray (crash, out of memory, GPU
+  // reset). Without a reload the window comes back blank white and alarms stop ringing.
+  win.webContents.on('render-process-gone', (_event, details) => {
+    if (quitting || details.reason === 'clean-exit') return;
+    win.webContents.reload();
+  });
+  let loadRetries = 0;
+  win.webContents.on('did-fail-load', (_event, code, _desc, _url, isMainFrame) => {
+    // -3 is ERR_ABORTED: a newer navigation replaced this one, not a real failure.
+    if (!isMainFrame || code === -3 || loadRetries++ >= 5) return;
+    setTimeout(() => !win.isDestroyed() && win.webContents.reload(), 1000);
+  });
+  win.webContents.on('did-finish-load', () => {
+    loadRetries = 0;
+  });
+
   if (DEV_URL) win.loadURL(DEV_URL);
   else win.loadFile(path.join(__dirname, '..', 'dist-desktop', 'index.html'));
 }
 
 function showWindow() {
   if (!win) return;
+  if (win.webContents.isCrashed()) win.webContents.reload();
   if (win.isMinimized()) win.restore();
   win.show();
   win.focus();
