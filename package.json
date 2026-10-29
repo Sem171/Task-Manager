@@ -45,13 +45,15 @@
     "files": [
       "dist-desktop/**",
       "electron/*.cjs",
-      "build/icon.png"
+      "build/icon.png",
+      "build/icon.ico"
     ],
     "directories": {
       "output": "release",
       "buildResources": "build"
     },
     "win": {
+      "icon": "build/icon.ico",
       "target": [
         "nsis",
         "portable"

@@ -6,6 +6,8 @@ const path = require('node:path');
 const DEV_URL = process.env.VITE_DEV_SERVER_URL;
 const APP_ID = 'app.nova.tasks';
 const ICON = path.join(__dirname, '..', 'build', 'icon.png');
+// Windows taskbar picks the right size from a multi-resolution .ico; a PNG gets blurry or ignored.
+const WINDOW_ICON = process.platform === 'win32' ? path.join(__dirname, '..', 'build', 'icon.ico') : ICON;
 const stateFile = () => path.join(app.getPath('userData'), 'window-state.json');
 const settingsFile = () => path.join(app.getPath('userData'), 'settings.json');
 // Launched by "Start with Windows": stay in the tray until opened.
@@ -62,7 +64,7 @@ function createWindow() {
     minHeight: 560,
     show: false,
     title: 'Nova Tasks',
-    icon: fs.existsSync(ICON) ? ICON : undefined,
+    icon: fs.existsSync(WINDOW_ICON) ? WINDOW_ICON : undefined,
     // Matches body bg (zinc-50 / zinc-950) so there is no white flash on launch.
     backgroundColor: nativeTheme.shouldUseDarkColors ? '#09090b' : '#fafafa',
     autoHideMenuBar: true,
