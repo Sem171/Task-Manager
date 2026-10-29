@@ -1,19 +1,20 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { AlarmClock, Bell, CalendarDays, Play, Plus, Trash2, Volume2, X } from 'lucide-react';
+import { AlarmClock, Bell, CalendarDays, Play, Plus, Repeat2, Trash2, Volume2, X } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
-import type { Priority, ReminderOffset, RingtoneId, Status, Subtask, TaskDraft } from '../../types';
+import type { Priority, ReminderOffset, Repeat, RingtoneId, Status, Subtask, TaskDraft } from '../../types';
 import {
   CATEGORY_COLOR_META,
   PRIORITY_META,
   PRIORITY_ORDER,
   REMINDER_META,
+  REPEAT_META,
   RINGTONE_META,
   RINGTONE_MOODS,
   STATUS_META,
   STATUS_ORDER,
 } from '../../lib/constants';
 import { cancelPreview, previewRingtone } from '../../lib/alarmSound';
-import { addDays, atTime, startOfDay } from '../../lib/date';
+import { addDays, atTime, formatTime, startOfDay } from '../../lib/date';
 import { cn, uid } from '../../lib/utils';
 import { useTaskStore } from '../../store/taskStore';
 import { toast } from '../../store/toastStore';
@@ -31,6 +32,7 @@ const EMPTY: TaskDraft = {
   categoryId: null,
   due: null,
   reminder: 'none',
+  repeat: 'none',
   alarm: null,
   subtasks: [],
 };
@@ -68,6 +70,7 @@ export function TaskEditor() {
             categoryId: task.categoryId,
             due: task.due,
             reminder: task.reminder,
+            repeat: task.repeat,
             alarm: task.alarm,
             subtasks: task.subtasks,
           }
@@ -86,6 +89,10 @@ export function TaskEditor() {
     if (id) previewRingtone(id);
     else cancelPreview();
   };
+
+  // Repeating works off the reminder firing, so make sure there is one.
+  const pickRepeat = (repeat: Repeat) =>
+    setDraft((d) => ({ ...d, repeat, reminder: repeat !== 'none' && d.reminder === 'none' ? 'at' : d.reminder }));
 
   const set = <K extends keyof TaskDraft>(key: K, value: TaskDraft[K]) => setDraft((d) => ({ ...d, [key]: value }));
   const canSave = draft.title.trim().length > 0;
@@ -274,6 +281,33 @@ export function TaskEditor() {
               </select>
               {!draft.due && <p className="mt-2 text-[11px] text-zinc-400">Set a deadline to enable reminders.</p>}
             </div>
+          </div>
+
+          <div>
+            <label className="label" htmlFor="repeat">
+              <Repeat2 className="mr-1 inline size-3 -translate-y-px" />
+              Repeat
+            </label>
+            <select
+              id="repeat"
+              value={draft.repeat}
+              disabled={!draft.due}
+              onChange={(e) => pickRepeat(e.target.value as Repeat)}
+              className="field disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {(Object.keys(REPEAT_META) as Repeat[]).map((r) => (
+                <option key={r} value={r}>
+                  {REPEAT_META[r].label}
+                </option>
+              ))}
+            </select>
+            {draft.due && draft.repeat !== 'none' && draft.reminder !== 'none' && (
+              <p className="mt-2 text-[11px] text-zinc-400">
+                {draft.alarm ? 'Alarm rings' : 'Reminder pops up'} {REPEAT_META[draft.repeat].label.toLowerCase()} at{' '}
+                {formatTime(new Date(new Date(draft.due).getTime() - (REMINDER_META[draft.reminder].offsetMs ?? 0)))}{' '}
+                until the task is marked done.
+              </p>
+            )}
           </div>
 
           <div>

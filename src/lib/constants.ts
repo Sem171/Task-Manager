@@ -2,6 +2,7 @@ import type {
   CategoryColor,
   Priority,
   ReminderOffset,
+  Repeat,
   RingtoneId,
   RingtoneMood,
   SmartView,
@@ -51,6 +52,14 @@ export const REMINDER_META: Record<ReminderOffset, { label: string; offsetMs: nu
   '15m': { label: '15 min before', offsetMs: 15 * 60_000 },
   '1h': { label: '1 hour before', offsetMs: 60 * 60_000 },
   '1d': { label: '1 day before', offsetMs: 24 * 60 * 60_000 },
+};
+
+export const REPEAT_META: Record<Repeat, { label: string }> = {
+  none: { label: 'Does not repeat' },
+  daily: { label: 'Every day' },
+  weekdays: { label: 'Every weekday' },
+  weekly: { label: 'Every week' },
+  monthly: { label: 'Every month' },
 };
 
 export const CATEGORY_COLORS: CategoryColor[] = ['violet', 'sky', 'emerald', 'amber', 'rose', 'slate'];

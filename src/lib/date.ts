@@ -1,3 +1,5 @@
+import type { Repeat } from '../types';
+
 const DAY_MS = 24 * 60 * 60_000;
 
 export function startOfDay(date: Date): Date {
@@ -10,6 +12,33 @@ export function addDays(date: Date, days: number): Date {
   const d = new Date(date);
   d.setDate(d.getDate() + days);
   return d;
+}
+
+/** Same day-of-month and time `months` later, clamped to the month's last day (Jan 31 → Feb 28). */
+export function addMonths(date: Date, months: number): Date {
+  const d = new Date(date);
+  const day = d.getDate();
+  d.setDate(1);
+  d.setMonth(d.getMonth() + months);
+  d.setDate(Math.min(day, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()));
+  return d;
+}
+
+/** The next occurrence after `date` at the same time of day. */
+export function nextOccurrence(date: Date, repeat: Exclude<Repeat, 'none'>): Date {
+  switch (repeat) {
+    case 'daily':
+      return addDays(date, 1);
+    case 'weekdays': {
+      let d = addDays(date, 1);
+      while (d.getDay() === 0 || d.getDay() === 6) d = addDays(d, 1);
+      return d;
+    }
+    case 'weekly':
+      return addDays(date, 7);
+    case 'monthly':
+      return addMonths(date, 1);
+  }
 }
 
 export function atTime(date: Date, hours: number, minutes = 0): Date {

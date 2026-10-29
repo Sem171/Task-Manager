@@ -1,6 +1,7 @@
 export type Priority = 'low' | 'medium' | 'high' | 'urgent';
 export type Status = 'todo' | 'in_progress' | 'done';
 export type ReminderOffset = 'none' | 'at' | '15m' | '1h' | '1d';
+export type Repeat = 'none' | 'daily' | 'weekdays' | 'weekly' | 'monthly';
 export type ThemeMode = 'light' | 'dark' | 'system';
 export type SmartView = 'all' | 'today' | 'upcoming' | 'overdue' | 'completed';
 export type Layout = 'board' | 'list';
@@ -40,6 +41,8 @@ export interface Task {
   /** ISO timestamp */
   due: string | null;
   reminder: ReminderOffset;
+  /** Each time the reminder fires, the deadline moves to the next occurrence at the same time. */
+  repeat: Repeat;
   /** Ringtone that loops when the reminder fires; null for a silent notification. */
   alarm: RingtoneId | null;
   reminderFiredAt: string | null;
@@ -51,5 +54,5 @@ export interface Task {
 
 export type TaskDraft = Pick<
   Task,
-  'title' | 'notes' | 'status' | 'priority' | 'categoryId' | 'due' | 'reminder' | 'alarm' | 'subtasks'
+  'title' | 'notes' | 'status' | 'priority' | 'categoryId' | 'due' | 'reminder' | 'repeat' | 'alarm' | 'subtasks'
 >;

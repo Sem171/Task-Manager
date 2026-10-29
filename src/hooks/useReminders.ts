@@ -12,7 +12,8 @@ const CHECK_INTERVAL_MS = 15_000;
 /**
  * Watches tasks for due reminders. Tasks with an alarm ring until dismissed; the rest
  * get an in-app toast (with snooze). Both also raise a system notification when
- * permitted. Each reminder fires once until the due date, reminder offset, or snooze changes.
+ * permitted. Each reminder fires once until the due date, reminder offset, or snooze changes;
+ * repeating tasks re-arm themselves for the next occurrence as they fire.
  */
 export function useReminders() {
   useEffect(() => {

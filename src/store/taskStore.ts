@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import type { Category, CategoryColor, Status, Task, TaskDraft } from '../types';
+import { REMINDER_META } from '../lib/constants';
+import { nextOccurrence } from '../lib/date';
 import { uid } from '../lib/utils';
 import { defaultCategories, LEGACY_SAMPLE_TITLES } from './seed';
 
@@ -33,11 +35,28 @@ function applyPatch(task: Task, patch: Partial<Task>): Task {
   if (patch.status && patch.status !== task.status) {
     next.completedAt = patch.status === 'done' ? now() : null;
   }
-  if (('due' in patch && patch.due !== task.due) || ('reminder' in patch && patch.reminder !== task.reminder)) {
+  if (
+    ('due' in patch && patch.due !== task.due) ||
+    ('reminder' in patch && patch.reminder !== task.reminder) ||
+    ('repeat' in patch && patch.repeat !== task.repeat)
+  ) {
     next.reminderFiredAt = null;
     next.snoozedUntil = null;
   }
   return next;
+}
+
+/**
+ * A repeating task's reminder just fired: move the deadline to the next occurrence whose
+ * reminder is still ahead (skipping any missed while the app was closed) and re-arm it.
+ */
+function rollForward(task: Task): Task {
+  const offset = REMINDER_META[task.reminder].offsetMs;
+  if (task.repeat === 'none' || offset === null || !task.due) return { ...task, reminderFiredAt: now() };
+  const nowMs = Date.now();
+  let due = new Date(task.due);
+  while (due.getTime() - offset <= nowMs) due = nextOccurrence(due, task.repeat);
+  return { ...task, due: due.toISOString(), reminderFiredAt: null, snoozedUntil: null };
 }
 
 export const useTaskStore = create<TaskState>()(
@@ -55,6 +74,7 @@ export const useTaskStore = create<TaskState>()(
           categoryId: null,
           due: null,
           reminder: 'none',
+          repeat: 'none',
           alarm: null,
           subtasks: [],
           ...draft,
@@ -136,7 +156,7 @@ export const useTaskStore = create<TaskState>()(
         })),
 
       markReminderFired: (id) =>
-        set((s) => ({ tasks: s.tasks.map((t) => (t.id === id ? { ...t, reminderFiredAt: now() } : t)) })),
+        set((s) => ({ tasks: s.tasks.map((t) => (t.id === id ? rollForward(t) : t)) })),
 
       addCategory: (name, color) => {
         const category: Category = { id: uid(), name: name.trim(), color };
@@ -152,7 +172,7 @@ export const useTaskStore = create<TaskState>()(
     }),
     {
       name: 'nova-tasks',
-      version: 3,
+      version: 4,
       storage: createJSONStorage(() => localStorage),
       migrate: (persisted, version) => {
         const state = persisted as Pick<TaskState, 'tasks' | 'categories'>;
@@ -160,6 +180,8 @@ export const useTaskStore = create<TaskState>()(
         if (version < 2) state.tasks = state.tasks.filter((t) => !LEGACY_SAMPLE_TITLES.has(t.title));
         // v3 added alarm ringtones.
         if (version < 3) state.tasks = state.tasks.map((t) => ({ ...t, alarm: t.alarm ?? null }));
+        // v4 added repeating reminders.
+        if (version < 4) state.tasks = state.tasks.map((t) => ({ ...t, repeat: t.repeat ?? 'none' }));
         return state as TaskState;
       },
       partialize: (s) => ({ tasks: s.tasks, categories: s.categories }),

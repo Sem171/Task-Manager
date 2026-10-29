@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { AlarmClock, Check, Clock } from 'lucide-react';
 import { useEffect } from 'react';
 import type { RingtoneMood } from '../../types';
-import { RINGTONE_META } from '../../lib/constants';
+import { REPEAT_META, RINGTONE_META } from '../../lib/constants';
 import { formatDue } from '../../lib/date';
 import { cn } from '../../lib/utils';
 import { useAlarmStore } from '../../store/alarmStore';
@@ -48,9 +48,12 @@ export function AlarmOverlay() {
     dismiss(alarm.taskId);
   };
 
+  // A repeating task's deadline has already moved to the next occurrence, so "done" only
+  // closes this one; completing the task would end the series.
+  const repeats = !!task && task.repeat !== 'none';
   const complete = () => {
     if (!alarm) return;
-    useTaskStore.getState().updateTask(alarm.taskId, { status: 'done' });
+    if (!repeats) useTaskStore.getState().updateTask(alarm.taskId, { status: 'done' });
     dismiss(alarm.taskId);
   };
 
@@ -103,7 +106,9 @@ export function AlarmOverlay() {
               {task.title}
             </h2>
             {task.due && (
-              <p className="mt-1 font-mono text-xs text-zinc-500 dark:text-zinc-400">Due {formatDue(task.due)}</p>
+              <p className="mt-1 font-mono text-xs text-zinc-500 dark:text-zinc-400">
+                {repeats ? `Next ${formatDue(task.due)} · ${REPEAT_META[task.repeat].label.toLowerCase()}` : `Due ${formatDue(task.due)}`}
+              </p>
             )}
 
             <button
@@ -126,7 +131,7 @@ export function AlarmOverlay() {
                 className="flex items-center justify-center gap-1.5 rounded-2xl bg-emerald-500/10 py-2.5 text-sm font-medium text-emerald-700 transition hover:bg-emerald-500/20 dark:text-emerald-400"
               >
                 <Check className="size-4" />
-                Mark done
+                {repeats ? 'Done for now' : 'Mark done'}
               </button>
             </div>
             {waiting > 0 && (
