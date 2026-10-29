@@ -13,12 +13,13 @@ import {
   STATUS_ORDER,
 } from '../../lib/constants';
 import { cancelPreview, previewRingtone } from '../../lib/alarmSound';
-import { addDays, atTime, fromInputValue, startOfDay, toInputValue } from '../../lib/date';
+import { addDays, atTime, startOfDay } from '../../lib/date';
 import { cn, uid } from '../../lib/utils';
 import { useTaskStore } from '../../store/taskStore';
 import { toast } from '../../store/toastStore';
 import { useUIStore } from '../../store/uiStore';
 import { Checkbox } from '../ui/Checkbox';
+import { DateTimePicker } from '../ui/DateTimePicker';
 import { Modal } from '../ui/Modal';
 import { Segmented } from '../ui/Segmented';
 
@@ -230,13 +231,7 @@ export function TaskEditor() {
                 <CalendarDays className="mr-1 inline size-3 -translate-y-px" />
                 Deadline
               </label>
-              <input
-                id="due"
-                type="datetime-local"
-                value={toInputValue(draft.due)}
-                onChange={(e) => set('due', fromInputValue(e.target.value))}
-                className="field font-mono text-[13px]"
-              />
+              <DateTimePicker id="due" value={draft.due} onChange={(iso) => set('due', iso)} />
               <div className="mt-2 flex flex-wrap gap-1">
                 {DUE_PRESETS.map((p) => (
                   <button

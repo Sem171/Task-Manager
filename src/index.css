@@ -27,10 +27,6 @@
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-violet-500;
   }
-
-  input[type='datetime-local']::-webkit-calendar-picker-indicator {
-    @apply cursor-pointer opacity-50 dark:invert;
-  }
 }
 
 @layer components {
@@ -60,6 +56,14 @@
   .scrollbar-thin {
     scrollbar-width: thin;
     scrollbar-color: rgb(161 161 170 / 0.35) transparent;
+  }
+
+  /* Time-picker drums: scrollable but without a visible scrollbar. */
+  .wheel {
+    scrollbar-width: none;
+  }
+  .wheel::-webkit-scrollbar {
+    display: none;
   }
 }
 
